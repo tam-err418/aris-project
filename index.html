@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ARIS COMMAND CENTER</title>
+    <style>
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; padding: 15px; margin: 0; }
+        #terminal { height: 70vh; overflow-y: auto; border: 1px solid #0f0; padding: 10px; margin-bottom: 10px; }
+        .input-row { display: flex; align-items: center; background: #111; padding: 5px; }
+        input { background: transparent; border: none; color: #0f0; flex: 1; outline: none; font-size: 16px; }
+        button { background: #004400; color: #0f0; border: 1px solid #0f0; padding: 5px 15px; cursor: pointer; }
+        .ai-msg { color: #ff0; } .user-msg { color: #00bcff; } .sys-msg { color: #f00; }
+    </style>
+</head>
+<body>
+    <h3>📡 ARIS COMMAND CENTER</h3>
+    <div id="terminal">
+        <div class="sys-msg">[SYSTEM] Đang khởi động ARIS... Hoàn tất.</div>
+        <div class="sys-msg">[ACTION] Nhập mã đội hoặc đặt câu hỏi cho AI.</div>
+    </div>
+    <div class="input-row">
+        <span>>&nbsp;</span>
+        <input type="text" id="userInput" placeholder="Nhập tin nhắn..." autocomplete="off">
+        <button onclick="sendMsg()">GỬI</button>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const input = document.getElementById('userInput');
+
+        function print(text, type) {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = text;
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        async function sendMsg() {
+            const msg = input.value.trim();
+            if (!msg) return;
+            print("👤 Kỹ sư: " + msg, "user-msg");
+            input.value = "";
+
+            try {
+                // Gọi tới bộ não AI trên Netlify
+                const res = await fetch('/.netlify/functions/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({ query: msg })
+                });
+                const data = await res.json();
+                print("🤖 ARIS: " + data.reply, "ai-msg");
+            } catch (e) {
+                print("[ERROR]: Không thể kết nối AI.", "sys-msg");
+            }
+        }
+        input.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMsg(); });
+    </script>
+</body>
+</html>
